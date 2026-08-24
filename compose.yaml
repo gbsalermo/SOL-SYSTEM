@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: sol-system-postgres
+    environment:
+      POSTGRES_DB: sol_system
+      POSTGRES_USER: sol_system
+      POSTGRES_PASSWORD: sol_system_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - sol_system_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sol_system -d sol_system"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sol_system_pgdata:
