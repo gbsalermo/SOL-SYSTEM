@@ -1,5 +1,7 @@
 package br.com.solsystem.service;
 
+import br.com.solsystem.dto.request.AtualizarUsuarioRequest;
+import br.com.solsystem.dto.request.RedefinirSenhaRequest;
 import br.com.solsystem.dto.request.UsuarioRequest;
 import br.com.solsystem.dto.response.UsuarioResponse;
 import br.com.solsystem.repository.FuncionarioRepository;
@@ -36,8 +38,13 @@ public class UsuarioService {
     }
 
     @Transactional
-    public UsuarioResponse atualizar(UUID publicId, UsuarioRequest request) {
-        throw new UnsupportedOperationException("TODO ETAPA 1.6: atualizar login/perfis sem regravar senha por acidente");
+    public UsuarioResponse atualizar(UUID publicId, AtualizarUsuarioRequest request) {
+        throw new UnsupportedOperationException("TODO ETAPA 1.6: atualizar somente login/perfis/status; senha possui fluxo separado");
+    }
+
+    @Transactional
+    public void redefinirSenha(UUID publicId, RedefinirSenhaRequest request) {
+        throw new UnsupportedOperationException("TODO ETAPA 1.6: BCrypt da nova senha, invalidar credenciais anteriores se aplicável e exigir troca no próximo login");
     }
 
     @Transactional

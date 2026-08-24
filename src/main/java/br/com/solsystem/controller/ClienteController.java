@@ -24,6 +24,6 @@ public class ClienteController {
     @GetMapping public List<ClienteResponse> listar() { return service.listar(); }
     @GetMapping("/{publicId}") public ClienteResponse buscar(@PathVariable UUID publicId) { return service.buscar(publicId); }
     @PutMapping("/{publicId}") @PreAuthorize("hasAnyRole('ADMINISTRADOR','GERENTE','CAIXA')") public ClienteResponse atualizar(@PathVariable UUID publicId, @Valid @RequestBody ClienteRequest r) { return service.atualizar(publicId, r); }
-    @PatchMapping("/{publicId}/classificacao") @PreAuthorize("hasAnyRole('ADMINISTRADOR','GERENTE')") public ClienteResponse classificar(@PathVariable UUID publicId, @Valid @RequestBody ClassificarClienteRequest r) { return service.classificar(publicId, r); }
+    @PatchMapping("/{publicId}/classificacao") @PreAuthorize("hasRole('ADMINISTRADOR')") public ClienteResponse classificar(@PathVariable UUID publicId, @Valid @RequestBody ClassificarClienteRequest r) { return service.classificar(publicId, r); }
     @PatchMapping("/{publicId}/desativar") @PreAuthorize("hasAnyRole('ADMINISTRADOR','GERENTE')") public ResponseEntity<Void> desativar(@PathVariable UUID publicId) { service.desativar(publicId); return ResponseEntity.noContent().build(); }
 }

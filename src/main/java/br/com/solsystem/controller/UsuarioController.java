@@ -1,5 +1,7 @@
 package br.com.solsystem.controller;
 
+import br.com.solsystem.dto.request.AtualizarUsuarioRequest;
+import br.com.solsystem.dto.request.RedefinirSenhaRequest;
 import br.com.solsystem.dto.request.UsuarioRequest;
 import br.com.solsystem.dto.response.UsuarioResponse;
 import br.com.solsystem.service.UsuarioService;
@@ -23,6 +25,7 @@ public class UsuarioController {
     @PostMapping public ResponseEntity<UsuarioResponse> criar(@Valid @RequestBody UsuarioRequest r) { return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(r)); }
     @GetMapping public List<UsuarioResponse> listar() { return service.listar(); }
     @GetMapping("/{publicId}") public UsuarioResponse buscar(@PathVariable UUID publicId) { return service.buscar(publicId); }
-    @PutMapping("/{publicId}") public UsuarioResponse atualizar(@PathVariable UUID publicId, @Valid @RequestBody UsuarioRequest r) { return service.atualizar(publicId, r); }
+    @PutMapping("/{publicId}") public UsuarioResponse atualizar(@PathVariable UUID publicId, @Valid @RequestBody AtualizarUsuarioRequest r) { return service.atualizar(publicId, r); }
+    @PatchMapping("/{publicId}/senha") public ResponseEntity<Void> redefinirSenha(@PathVariable UUID publicId, @Valid @RequestBody RedefinirSenhaRequest r) { service.redefinirSenha(publicId, r); return ResponseEntity.noContent().build(); }
     @PatchMapping("/{publicId}/desativar") public ResponseEntity<Void> desativar(@PathVariable UUID publicId) { service.desativar(publicId); return ResponseEntity.noContent().build(); }
 }
