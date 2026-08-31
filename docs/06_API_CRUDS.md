@@ -1,6 +1,16 @@
 # 06 — API, CRUDs e Operações
 
-Base: `/api/v1`.
+## Base externa
+
+```text
+/api/v1
+```
+
+Detalhe de implementação: `server.servlet.context-path=/api` + `@RequestMapping("/v1/...")`.
+
+## Estado atual dos endpoints
+
+As rotas estão majoritariamente scaffoldadas. Isso **não significa CRUD funcional**: enquanto o service correspondente mantiver `UnsupportedOperationException`, a resposta esperada é `501 Not Implemented`.
 
 ## Auth
 
@@ -11,7 +21,8 @@ Base: `/api/v1`.
 - `POST /usuarios`
 - `GET /usuarios`
 - `GET /usuarios/{publicId}`
-- `PUT /usuarios/{publicId}`
+- `PUT /usuarios/{publicId}` — login/perfis/status, sem senha
+- `PATCH /usuarios/{publicId}/senha` — fluxo separado de redefinição
 - `PATCH /usuarios/{publicId}/desativar`
 
 ## Catálogo
@@ -39,6 +50,8 @@ Base: `/api/v1`.
 
 - CRUD lógico `/clientes`
 - `PATCH /clientes/{publicId}/classificacao`
+
+A classificação VIP está protegida para `ADMINISTRADOR` no scaffold atual.
 
 ## Funcionários
 
@@ -90,7 +103,11 @@ Base: `/api/v1`.
 - 400 contrato inválido;
 - 401 não autenticado;
 - 403 sem permissão;
-- 404 publicId inexistente;
+- 404 `publicId` inexistente;
 - 409 concorrência/conflito/estoque;
 - 422 regra de negócio;
 - 501 somente enquanto método do scaffold ainda não foi implementado.
+
+## Regra de evolução de contrato
+
+Antes de alterar rota/DTO já scaffoldado, confirmar se a mudança vem de regra de negócio real. Evitar criar versões paralelas de endpoints sem necessidade.

@@ -1,5 +1,18 @@
 # 08 — Relatórios e Telegram
 
+## Estado atual
+
+`RelatorioService`, `TelegramService`, scheduler e entidades de notificação estão scaffoldados. Cálculo real e envio real pertencem às Etapas 13 e 14.
+
+Configuração inicial existente:
+
+- `TELEGRAM_ENABLED=false` por padrão;
+- token e chat por variáveis de ambiente;
+- timezone `America/Bahia`;
+- cron diário inicialmente às 19:00.
+
+O horário ainda deve ser confirmado antes da Etapa 14.
+
 ## Separação obrigatória
 
 ```text
@@ -8,7 +21,7 @@ TelegramService  → entrega
 Scheduler         → agenda
 ```
 
-Telegram não contém regra financeira.
+Telegram não contém regra financeira e uma falha do canal não pode desfazer operação do negócio.
 
 ## Resumo diário mínimo
 
@@ -44,12 +57,6 @@ Em atraso: R$ 1.120,00
 Cancelamentos: 2 | R$ 180,00
 ```
 
-## Configuração
-
-Token/chat ficam em variáveis de ambiente. `TELEGRAM_ENABLED=false` por padrão.
-
-Scheduler está preparado para 19:00 em `America/Bahia`; o horário pode ser alterado sem recompilar.
-
 ## Confiabilidade
 
-`NotificacaoEnvio` registra envio/falha/tentativas. Uma falha do Telegram não pode desfazer vendas nem interromper o caixa.
+`NotificacaoEnvio` deve registrar envio/falha/tentativas. Reenvio não pode duplicar fatos financeiros. Uma falha do Telegram deve permanecer isolada da transação de venda/caixa.

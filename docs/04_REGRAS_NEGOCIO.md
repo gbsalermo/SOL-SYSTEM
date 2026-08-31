@@ -1,5 +1,9 @@
 # 04 — Regras de Negócio
 
+## Uso deste documento
+
+Estas regras são **invariantes do domínio**. Uma implementação que compila mas viola uma regra abaixo não está concluída. Decisões ainda não fechadas ficam em `12_DECISOES_PENDENTES.md`.
+
 ## RN-EST — Estoque
 
 1. Estoque pertence à variação, não ao produto genérico.
@@ -13,8 +17,8 @@
 
 1. Entrada recebida não pode ser editada como rascunho.
 2. Cada item altera estoque e gera movimento.
-3. Custo atual será inicialmente calculado por **custo médio ponderado**; se a loja preferir último custo, registrar a mudança antes da implementação.
-4. Cancelamento futuro de entrada deve ser uma operação de reversão, não DELETE.
+3. Proposta atual de cálculo de custo: **custo médio ponderado**. Ainda precisa confirmação da loja antes da Etapa 4.
+4. Cancelamento futuro de entrada deve ser operação de reversão, não DELETE.
 
 ## RN-VEN — Venda
 
@@ -23,9 +27,10 @@
 3. Snapshot de preço e custo é gravado em `ItemVenda`.
 4. Soma dos pagamentos deve fechar o total; a parte em crediário cria dívida.
 5. Venda com crediário exige Cliente.
-6. Venda finalizada não é editada diretamente.
-7. Cancelamento exige motivo, autorização e auditoria.
-8. Vendas em dinheiro/recebimentos físicos exigem sessão de caixa aberta.
+6. Venda sem Cliente é permitida para pagamento imediato.
+7. Venda finalizada não é editada diretamente.
+8. Cancelamento exige motivo, autorização e auditoria.
+9. Vendas em dinheiro/recebimentos físicos exigem sessão de caixa aberta.
 
 ## RN-CLI — Cliente, VIP e lista negra
 
@@ -36,6 +41,7 @@
 5. Colocar/retirar cliente das listas exige motivo e auditoria.
 6. Histórico financeiro nunca é apagado quando a classificação muda.
 7. Dívida é soma das contas abertas/vencidas; não duplicar saldo no Cliente.
+8. O perfil autorizado a aplicar/remover `LISTA_NEGRA` além do ADMINISTRADOR ainda é decisão pendente.
 
 ## RN-CRE — Crediário
 
@@ -45,7 +51,7 @@
 4. Recebimento atualiza conta/parcela e caixa na mesma transação.
 5. Atraso muda status para `VENCIDA` sem apagar histórico.
 6. Nova dívida deve respeitar limite de crédito disponível.
-7. Venda parcialmente paga que for cancelada exige regra explícita de devolução/estorno; não zerar saldo silenciosamente.
+7. Venda parcialmente paga que for cancelada exige política explícita de devolução/estorno; não zerar saldo silenciosamente.
 
 ## RN-CXA — Caixa
 
@@ -77,4 +83,4 @@ Falhou uma parte: rollback de tudo.
 - Receita líquida = vendas - descontos/cancelamentos aplicáveis.
 - Lucro bruto = receita de venda - custo congelado dos itens.
 - Resultado operacional = lucro bruto - despesas registradas no período.
-- Não chamar lucro bruto de lucro líquido contábil.
+- Não chamar lucro bruto ou resultado operacional de lucro líquido contábil.

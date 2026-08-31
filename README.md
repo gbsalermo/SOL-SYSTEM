@@ -1,48 +1,80 @@
 # SOL System — Gestão de Loja Física
 
-Backend REST para gestão de uma loja familiar de roupas, com foco em operação presencial: produtos e variações, estoque, entradas, vendas, caixa, clientes, crediário, funcionários, usuários/permissões, cancelamentos, auditoria, relatórios e envio diário por Telegram.
+Backend REST para gestão de uma única loja familiar de roupas, com foco em operação presencial: catálogo, variações, estoque, fornecedores, entradas, vendas, caixa, clientes, crediário, funcionários, usuários/permissões, cancelamentos, auditoria, despesas, relatórios e resumo diário via Telegram.
 
-> O projeto **não é um e-commerce** no MVP. Landing page e venda online são evoluções separadas.
+> **Não é e-commerce no MVP.** Landing page, catálogo público e venda online são evoluções separadas.
 
-## Stack base
+## Estado atual
 
-- Java 21 (LTS)
-- Spring Boot 4.1.x
+**Revisão documental:** 31/08/2026  
+**Commit de código revisado:** `e9cbc4f7b304f873fbfce76b4de5765f641dd850`  
+**Etapa concluída:** ETAPA 0 — Scaffold  
+**Etapa atual:** **ETAPA 1.1 — validação da fundação técnica**
+
+O backend possui estrutura ampla já criada, porém a maior parte das regras de negócio **ainda não está implementada**. Muitos services lançam `UnsupportedOperationException` com `TODO ETAPA ...`; o `GlobalExceptionHandler` converte isso em HTTP `501 Not Implemented`.
+
+Existe somente o teste básico de carregamento do contexto (`SolSystemApplicationTests`). Há workflow de CI com `mvn test`, mas na revisão de 31/08/2026 não havia execução registrada para o commit atual. Portanto, **não considerar o scaffold validado até executar a ETAPA 1.1**.
+
+## Stack oficial
+
+- Java 21
+- Spring Boot 4.1.0
 - Spring Web
 - Spring Data JPA
 - Bean Validation
 - Spring Security
-- JWT (estrutura preparada)
-- H2 para desenvolvimento rápido
-- PostgreSQL para persistência definitiva
-- Flyway para migrations
-- Springdoc OpenAPI / Swagger
+- OAuth2 Resource Server como base de segurança
+- JWT — estrutura preparada, implementação pendente na Etapa 1
+- H2 — desenvolvimento inicial
+- PostgreSQL — persistência definitiva
+- Flyway — habilitado no profile PostgreSQL; migrations ainda pertencem à Etapa 5
+- Springdoc OpenAPI 3.0.3 / Swagger UI
 - Actuator
 - JUnit / Mockito / Spring Security Test
 - Testcontainers PostgreSQL
 
-## Estratégia deste repositório
+## URL base da API
 
-Diferente de um projeto criado totalmente do zero, o SOL System nasce com a **estrutura completa do backend já preparada**. As entidades, DTOs, repositories, services, controllers e módulos transversais existem desde o início, mas as regras de negócio dos services ficam marcadas com `TODO` e referências de etapa.
+Os controllers são mapeados em `/v1/...`, enquanto `application.yml` define:
 
-A intenção é que o desenvolvimento seja feito verticalmente, módulo por módulo, sem gastar tempo criando arquivos e decidindo nomes durante a implementação.
+```yaml
+server:
+  servlet:
+    context-path: /api
+```
+
+Logo, a URL externa oficial é:
+
+```text
+/api/v1/...
+```
+
+Exemplo: controller `/v1/auth` → endpoint externo `/api/v1/auth/login`.
+
+## Estratégia do repositório
+
+O SOL System nasceu com **scaffold completo** para reduzir trabalho mecânico. Já existem entidades, DTOs, repositories, services, controllers e módulos transversais, mas a implementação deve acontecer **verticalmente e na ordem do roadmap oficial**.
+
+Nunca interpretar “arquivo existente” como “feature pronta”. O status real é determinado por `CONTINUIDADE.md` e pelos testes.
 
 ## Identificação e proteção de dados
 
-Toda entidade persistida herda dois identificadores:
+Toda entidade persistida herda de `BaseEntity`:
 
 ```text
-Long id       -> chave interna do banco; nunca usada pela API
-UUID publicId -> identificador externo; usado em URLs, DTOs e integrações
+Long id       -> chave interna do banco; não usar na API
+UUID publicId -> identificador externo; usar em URLs, DTOs e integrações
+@Version      -> controle otimista adicional
+criadoEm / atualizadoEm -> timestamps UTC
 ```
 
-Senhas **nunca** são armazenadas em texto puro. `Usuario` guarda apenas `senhaHash`, gerado com `PasswordEncoder` (BCrypt no plano inicial). Entidades JPA não devem ser retornadas diretamente pelos controllers.
+Senhas nunca são armazenadas em texto puro. `Usuario` guarda `senhaHash`, e o fluxo planejado usa `PasswordEncoder`/BCrypt. Entidades JPA não devem ser retornadas diretamente pelos controllers.
 
-Cliente não autentica no sistema: ele é um cadastro comercial. A autenticação pertence a `Usuario`, normalmente vinculado a um `Funcionario`. Administração é um **perfil de acesso**, não outra tabela de pessoa.
+Cliente é cadastro comercial e **não autentica**. Autenticação pertence a `Usuario`, vinculado a `Funcionario`. Administração é perfil de acesso, não outra entidade de pessoa.
 
 ## Cliente: padrão, VIP e lista negra
 
-`Cliente` possui a classificação:
+`Cliente` possui uma classificação mutável:
 
 ```text
 PADRAO
@@ -50,71 +82,53 @@ LISTA_VIP
 LISTA_NEGRA
 ```
 
-- `LISTA_VIP`: cliente confiável, bom histórico e crediário aprovado pelo proprietário/administração.
-- `LISTA_NEGRA`: cliente com histórico problemático/atrasos recorrentes; crediário bloqueado.
-- `PADRAO`: cliente comum, sem privilégios automáticos.
+- `LISTA_VIP`: cliente confiável, com aprovação administrativa/proprietário para crediário.
+- `LISTA_NEGRA`: cliente problemático/inadimplente; bloqueia novas vendas a prazo.
+- `PADRAO`: cliente comum.
 
-A classificação é um estado do cliente e pode mudar ao longo do tempo; por isso não são usadas subclasses JPA separadas.
+Não usar subclasses JPA separadas para essas classificações.
 
-## Estrutura planejada
-
-```text
-br.com.solsystem
-├── audit
-├── config
-├── controller
-├── dto
-│   ├── request
-│   └── response
-├── entity
-├── enums
-├── exception
-├── notification
-├── repository
-├── report
-├── scheduler
-├── security
-├── service
-└── util
-```
-
-## Regra de desenvolvimento
-
-Cada etapa deve ser implementada verticalmente:
+## Fluxo obrigatório de desenvolvimento
 
 ```text
+Revisar CONTINUIDADE + etapa do roadmap
+        ↓
 Entity / relacionamento
-       ↓
+        ↓
 DTOs
-       ↓
+        ↓
 Repository
-       ↓
-Service + regras
-       ↓
-Controller
-       ↓
+        ↓
+Service + regras + transação
+        ↓
+Controller + autorização
+        ↓
 Validações / Exceptions
-       ↓
-Testes
-       ↓
+        ↓
+Testes unitários e integração necessários
+        ↓
 Teste local
-       ↓
-Atualizar CONTINUIDADE.md
-       ↓
+        ↓
+Atualizar documentação
+        ↓
 Commit
 ```
 
-## Documentação
+Não avançar uma etapa sem concluir e validar a anterior.
 
-A pasta `docs/` contém visão, arquitetura, domínio, segurança, contratos, regras, relatórios, roadmap, concorrência e checklists.
+## Documentação — ordem de leitura para humanos ou IA
 
-Os documentos de referência principal são:
+1. `docs/00_CONTEXTO_PARA_IA.md` — visão rápida de handoff, fontes de verdade e estado atual.
+2. `CONTINUIDADE.md` — ponto exato onde o desenvolvimento está e próxima ação.
+3. `docs/09_ROADMAP_ETAPAS.md` — ordem oficial; não criar roadmap alternativo.
+4. `docs/04_REGRAS_NEGOCIO.md` — invariantes de negócio.
+5. `docs/12_DECISOES_PENDENTES.md` — escolhas ainda não fechadas.
+6. demais arquivos de `docs/` conforme o módulo em execução.
 
-1. `CONTINUIDADE.md` — estado atual e próxima tarefa.
-2. `docs/04_REGRAS_NEGOCIO.md` — comportamento obrigatório do sistema.
-3. `docs/09_ROADMAP_ETAPAS.md` — ordem oficial de implementação.
-4. `docs/10_GUIA_IMPLEMENTACAO.md` — como executar cada etapa.
+Se documentos e código parecerem divergir, **não escolher silenciosamente um lado**: conferir `CONTINUIDADE.md`, identificar se é decisão ou implementação incompleta e registrar a reconciliação antes de avançar.
 
-## Primeira tarefa após o scaffold
+## Próxima tarefa oficial
 
-Começar pela **ETAPA 1 — Fundação técnica e segurança mínima**, validar o projeto localmente e só então seguir para Produto/Categoria/Variações.
+> **ETAPA 1.1 — executar `mvn test`, subir o profile `dev`, inspecionar o schema H2 e implementar construtores/factories controlados das entidades necessárias à fundação de segurança.**
+
+Somente após validar 1.1 seguir para 1.2.
